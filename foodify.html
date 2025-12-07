@@ -1,0 +1,1222 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AllergyGuard - AI Food Allergen Scanner</title>
+    <style>
+        /* Reset & Base Styles */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #2563eb;
+            --primary-light: #3b82f6;
+            --primary-dark: #1d4ed8;
+            --success: #10b981;
+            --danger: #ef4444;
+            --warning: #f59e0b;
+            --gray-50: #f9fafb;
+            --gray-100: #f3f4f6;
+            --gray-200: #e5e7eb;
+            --gray-300: #d1d5db;
+            --gray-400: #9ca3af;
+            --gray-500: #6b7280;
+            --gray-600: #4b5563;
+            --gray-700: #374151;
+            --gray-800: #1f2937;
+            --gray-900: #111827;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: var(--gray-800);
+            line-height: 1.6;
+        }
+
+        /* App Container */
+        .app-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        /* Header */
+        .header {
+            background: white;
+            border-radius: 20px;
+            padding: 20px 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .logo-icon {
+            width: 50px;
+            height: 50px;
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+        }
+
+        .logo-text h1 {
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--gray-900);
+        }
+
+        .logo-text p {
+            color: var(--gray-600);
+            font-size: 14px;
+        }
+
+        .nav-tabs {
+            display: flex;
+            gap: 10px;
+            background: var(--gray-100);
+            padding: 5px;
+            border-radius: 12px;
+        }
+
+        .tab-btn {
+            padding: 10px 20px;
+            border: none;
+            background: transparent;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.3s ease;
+            color: var(--gray-600);
+        }
+
+        .tab-btn.active {
+            background: white;
+            color: var(--primary);
+            box-shadow: 0 2px 8px rgba(37, 99, 235, 0.2);
+        }
+
+        .tab-btn:hover:not(.active) {
+            background: rgba(255, 255, 255, 0.5);
+        }
+
+        /* Main Content */
+        .content-area {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+            min-height: 500px;
+        }
+
+        .view {
+            display: none;
+            animation: fadeIn 0.5s ease;
+        }
+
+        .view.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Profile View */
+        .profile-container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .profile-title {
+            font-size: 28px;
+            font-weight: 700;
+            color: var(--gray-900);
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .profile-subtitle {
+            color: var(--gray-600);
+            text-align: center;
+            margin-bottom: 40px;
+            font-size: 16px;
+        }
+
+        .sensitivity-section {
+            margin-bottom: 40px;
+        }
+
+        .section-title {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 15px;
+            color: var(--gray-800);
+        }
+
+        .sensitivity-options {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+        }
+
+        .sensitivity-card {
+            background: var(--gray-50);
+            border: 2px solid var(--gray-200);
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .sensitivity-card:hover {
+            border-color: var(--primary-light);
+            transform: translateY(-2px);
+        }
+
+        .sensitivity-card.active {
+            background: linear-gradient(135deg, #e0e7ff, #c7d2fe);
+            border-color: var(--primary);
+            box-shadow: 0 5px 15px rgba(37, 99, 235, 0.2);
+        }
+
+        .sensitivity-card h3 {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+
+        .sensitivity-card p {
+            font-size: 14px;
+            color: var(--gray-600);
+        }
+
+        .allergens-section {
+            margin-bottom: 40px;
+        }
+
+        .allergens-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+            gap: 15px;
+        }
+
+        .allergen-card {
+            background: white;
+            border: 2px solid var(--gray-200);
+            border-radius: 12px;
+            padding: 15px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .allergen-card:hover {
+            border-color: var(--primary-light);
+            transform: translateY(-2px);
+        }
+
+        .allergen-card.active {
+            background: #fef2f2;
+            border-color: var(--danger);
+            box-shadow: 0 5px 15px rgba(239, 68, 68, 0.1);
+        }
+
+        .allergen-icon {
+            font-size: 24px;
+        }
+
+        .allergen-name {
+            font-weight: 500;
+        }
+
+        .save-btn {
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            color: white;
+            border: none;
+            padding: 16px 32px;
+            font-size: 16px;
+            font-weight: 600;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: block;
+            width: 100%;
+            max-width: 400px;
+            margin: 0 auto;
+        }
+
+        .save-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(37, 99, 235, 0.3);
+        }
+
+        .save-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        /* Scanner View */
+        .scanner-container {
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .scanner-title {
+            font-size: 24px;
+            font-weight: 700;
+            text-align: center;
+            margin-bottom: 30px;
+            color: var(--gray-900);
+        }
+
+        .camera-box {
+            background: var(--gray-100);
+            border-radius: 16px;
+            height: 400px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 30px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .camera-placeholder {
+            text-align: center;
+            color: var(--gray-500);
+        }
+
+        .camera-placeholder svg {
+            width: 80px;
+            height: 80px;
+            margin-bottom: 20px;
+            color: var(--gray-400);
+        }
+
+        .camera-placeholder p {
+            font-size: 16px;
+        }
+
+        .scanner-controls {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+
+        .control-btn {
+            background: var(--gray-100);
+            border: 2px solid var(--gray-200);
+            border-radius: 12px;
+            padding: 16px;
+            font-size: 16px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .control-btn:hover {
+            border-color: var(--primary);
+            background: white;
+            transform: translateY(-2px);
+        }
+
+        .control-btn.primary {
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            color: white;
+            border: none;
+        }
+
+        .file-input {
+            display: none;
+        }
+
+        .tips-box {
+            background: linear-gradient(135deg, #dbeafe, #bfdbfe);
+            border-radius: 12px;
+            padding: 20px;
+        }
+
+        .tips-title {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 10px;
+            color: var(--gray-800);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .tips-list {
+            list-style: none;
+        }
+
+        .tips-list li {
+            padding: 8px 0;
+            padding-left: 24px;
+            position: relative;
+            font-size: 14px;
+            color: var(--gray-700);
+        }
+
+        .tips-list li:before {
+            content: "•";
+            color: var(--primary);
+            font-size: 20px;
+            position: absolute;
+            left: 0;
+            top: 5px;
+        }
+
+        /* Processing View */
+        .processing-container {
+            max-width: 500px;
+            margin: 0 auto;
+            text-align: center;
+        }
+
+        .processing-spinner {
+            width: 80px;
+            height: 80px;
+            border: 6px solid var(--gray-200);
+            border-top-color: var(--primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 40px auto;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .processing-title {
+            font-size: 24px;
+            font-weight: 600;
+            margin-bottom: 10px;
+            color: var(--gray-900);
+        }
+
+        .processing-text {
+            color: var(--gray-600);
+            font-size: 16px;
+        }
+
+        /* Result View */
+        .result-container {
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .result-header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .result-icon {
+            width: 100px;
+            height: 100px;
+            margin: 0 auto 20px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 48px;
+        }
+
+        .result-icon.safe {
+            background: linear-gradient(135deg, #d1fae5, #a7f3d0);
+            color: var(--success);
+        }
+
+        .result-icon.unsafe {
+            background: linear-gradient(135deg, #fee2e2, #fecaca);
+            color: var(--danger);
+        }
+
+        .result-icon.uncertain {
+            background: linear-gradient(135deg, #fef3c7, #fde68a);
+            color: var(--warning);
+        }
+
+        .result-title {
+            font-size: 28px;
+            font-weight: 700;
+            margin-bottom: 10px;
+        }
+
+        .result-message {
+            font-size: 18px;
+            margin-bottom: 10px;
+            color: var(--gray-700);
+        }
+
+        .result-details {
+            background: var(--gray-50);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .detected-allergens {
+            margin-bottom: 20px;
+        }
+
+        .detected-title {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 10px;
+            color: var(--gray-800);
+        }
+
+        .allergen-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .allergen-tag {
+            background: var(--danger);
+            color: white;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .extracted-text {
+            margin-bottom: 20px;
+        }
+
+        .extracted-title {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 10px;
+            color: var(--gray-800);
+        }
+
+        .text-content {
+            background: white;
+            border: 1px solid var(--gray-200);
+            border-radius: 8px;
+            padding: 15px;
+            font-size: 14px;
+            line-height: 1.5;
+            max-height: 150px;
+            overflow-y: auto;
+        }
+
+        .result-actions {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .action-btn {
+            padding: 16px;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .action-btn.primary {
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            color: white;
+        }
+
+        .action-btn.secondary {
+            background: var(--gray-100);
+            color: var(--gray-800);
+        }
+
+        .action-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .disclaimer {
+            background: var(--gray-100);
+            border-radius: 12px;
+            padding: 15px;
+            font-size: 14px;
+            color: var(--gray-600);
+            text-align: center;
+        }
+
+        /* Footer */
+        .demo-notice {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 12px;
+            padding: 15px;
+            margin-top: 30px;
+            text-align: center;
+            color: white;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .header {
+                flex-direction: column;
+                gap: 20px;
+                text-align: center;
+            }
+
+            .nav-tabs {
+                width: 100%;
+                justify-content: center;
+            }
+
+            .content-area {
+                padding: 20px;
+            }
+
+            .sensitivity-options {
+                grid-template-columns: 1fr;
+            }
+
+            .allergens-grid {
+                grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            }
+
+            .scanner-controls,
+            .result-actions {
+                grid-template-columns: 1fr;
+            }
+
+            .camera-box {
+                height: 300px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .app-container {
+                padding: 10px;
+            }
+
+            .allergens-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <!-- Header -->
+        <header class="header">
+            <div class="logo">
+                <div class="logo-icon">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+                    </svg>
+                </div>
+                <div class="logo-text">
+                    <h1>AllergyGuard</h1>
+                    <p>AI-Powered Food Allergen Scanner</p>
+                </div>
+            </div>
+            <div class="nav-tabs">
+                <button class="tab-btn profile-tab active" data-view="profile">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+                        <circle cx="12" cy="7" r="4"/>
+                    </svg>
+                    Profile
+                </button>
+                <button class="tab-btn scanner-tab" data-view="scanner">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
+                        <circle cx="12" cy="13" r="4"/>
+                    </svg>
+                    Scanner
+                </button>
+            </div>
+        </header>
+
+        <!-- Main Content Area -->
+        <main class="content-area">
+            <!-- Profile View -->
+            <div id="profile-view" class="view active">
+                <div class="profile-container">
+                    <h2 class="profile-title">Your Allergy Profile</h2>
+                    <p class="profile-subtitle">Select your allergens and sensitivity level for personalized scanning</p>
+                    
+                    <div class="sensitivity-section">
+                        <h3 class="section-title">Sensitivity Level</h3>
+                        <div class="sensitivity-options">
+                            <div class="sensitivity-card active" data-level="low">
+                                <h3>Low Sensitivity</h3>
+                                <p>Mild reactions, avoid direct consumption</p>
+                            </div>
+                            <div class="sensitivity-card" data-level="medium">
+                                <h3>Medium Sensitivity</h3>
+                                <p>Moderate reactions, avoid traces</p>
+                            </div>
+                            <div class="sensitivity-card" data-level="high">
+                                <h3>High Sensitivity</h3>
+                                <p>Severe reactions, avoid cross-contact</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="allergens-section">
+                        <h3 class="section-title">Select Your Allergens</h3>
+                        <div class="allergens-grid" id="allergens-grid">
+                            <!-- Allergen cards will be generated by JavaScript -->
+                        </div>
+                    </div>
+                    
+                    <button id="save-profile-btn" class="save-btn" disabled>
+                        Save Profile & Start Scanning
+                    </button>
+                </div>
+            </div>
+
+            <!-- Scanner View -->
+            <div id="scanner-view" class="view">
+                <div class="scanner-container">
+                    <h2 class="scanner-title">Scan Ingredient List</h2>
+                    
+                    <div class="camera-box">
+                        <div class="camera-placeholder" id="camera-placeholder">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                                <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
+                                <circle cx="12" cy="13" r="4"/>
+                            </svg>
+                            <p>Camera ready for scanning</p>
+                        </div>
+                        <img id="captured-image" class="hidden" alt="Captured image">
+                    </div>
+                    
+                    <div class="scanner-controls">
+                        <button id="capture-btn" class="control-btn primary">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <circle cx="12" cy="12" r="10"/>
+                                <path d="M12 8v8M8 12h8"/>
+                            </svg>
+                            Capture Photo
+                        </button>
+                        <label class="control-btn">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                                <polyline points="17 8 12 3 7 8"/>
+                                <line x1="12" y1="3" x2="12" y2="15"/>
+                            </svg>
+                            Upload Image
+                            <input type="file" id="file-input" class="file-input" accept="image/*">
+                        </label>
+                    </div>
+                    
+                    <div class="tips-box">
+                        <h3 class="tips-title">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <circle cx="12" cy="12" r="10"/>
+                                <line x1="12" y1="16" x2="12" y2="12"/>
+                                <line x1="12" y1="8" x2="12.01" y2="8"/>
+                            </svg>
+                            Tips for Best Results
+                        </h3>
+                        <ul class="tips-list">
+                            <li>Ensure good lighting on the ingredient list</li>
+                            <li>Hold camera steady and parallel to text</li>
+                            <li>Make sure text is clear and in focus</li>
+                            <li>Capture the entire ingredient list</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Processing View -->
+            <div id="processing-view" class="view">
+                <div class="processing-container">
+                    <div class="processing-spinner"></div>
+                    <h3 class="processing-title">Analyzing Ingredients...</h3>
+                    <p class="processing-text">Scanning for allergens in your photo</p>
+                </div>
+            </div>
+
+            <!-- Result View -->
+            <div id="result-view" class="view">
+                <div class="result-container">
+                    <div class="result-header">
+                        <div id="result-icon" class="result-icon"></div>
+                        <h2 id="result-title" class="result-title"></h2>
+                        <p id="result-message" class="result-message"></p>
+                    </div>
+                    
+                    <div class="result-details">
+                        <div id="detected-allergens-section" class="detected-allergens hidden">
+                            <h3 class="detected-title">Detected Allergens:</h3>
+                            <div class="allergen-tags" id="detected-allergens"></div>
+                        </div>
+                        
+                        <div id="extracted-text-section" class="extracted-text hidden">
+                            <h3 class="extracted-title">Extracted Text:</h3>
+                            <div class="text-content" id="extracted-text-content"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="result-actions">
+                        <button id="rescan-btn" class="action-btn primary">Scan Same Product</button>
+                        <button id="new-scan-btn" class="action-btn secondary">New Product</button>
+                    </div>
+                    
+                    <div class="disclaimer">
+                        <p>⚠️ This tool provides AI-powered assistance but should not replace medical advice. Always double-check ingredient labels and consult healthcare professionals for severe allergies.</p>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <!-- Demo Notice -->
+        <footer class="demo-notice">
+            <p>🚀 <strong>Demo Version</strong> - Using mock OCR for demonstration. Connect to real OCR API for production use.</p>
+        </footer>
+    </div>
+
+    <script>
+        // Allergen Database
+        const allergenSynonyms = {
+            milk: ["milk", "dairy", "casein", "whey", "lactose", "lactoglobulin", "butter", "cream", "cheese", "ghee", "E322", "lecithin"],
+            eggs: ["egg", "eggs", "albumin", "ovalbumin", "ovomucoid", "lecithin", "E322", "mayonnaise", "meringue"],
+            peanuts: ["peanut", "peanuts", "groundnut", "arachis", "peanut oil", "goober pea"],
+            treenuts: ["almond", "almonds", "walnut", "walnuts", "cashew", "cashews", "pecan", "pecans", "pistachio", "pistachios", "hazelnut", "hazelnuts"],
+            soy: ["soy", "soya", "soybean", "tofu", "edamame", "soy lecithin", "E322", "textured vegetable protein", "TVP"],
+            wheat: ["wheat", "gluten", "flour", "bread", "pasta", "cereal", "couscous", "farina", "semolina"],
+            fish: ["fish", "anchovy", "bass", "cod", "flounder", "grouper", "haddock", "hake", "halibut", "herring"],
+            shellfish: ["shellfish", "shrimp", "prawn", "crab", "lobster", "crayfish", "crawfish", "clam", "mussel", "oyster"],
+            sesame: ["sesame", "sesame seeds", "sesame oil", "tahini", "til", "benne", "benne seed"]
+        };
+
+        const allergens = [
+            { id: 'milk', name: 'Milk & Dairy', icon: '🥛' },
+            { id: 'eggs', name: 'Eggs', icon: '🥚' },
+            { id: 'peanuts', name: 'Peanuts', icon: '🥜' },
+            { id: 'treenuts', name: 'Tree Nuts', icon: '🌰' },
+            { id: 'soy', name: 'Soy', icon: '🌱' },
+            { id: 'wheat', name: 'Wheat & Gluten', icon: '🌾' },
+            { id: 'fish', name: 'Fish', icon: '🐟' },
+            { id: 'shellfish', name: 'Shellfish', icon: '🦐' },
+            { id: 'sesame', name: 'Sesame', icon: '⚫' }
+        ];
+
+        // Mock ingredient texts for demonstration
+        const mockIngredientTexts = [
+            "Ingredients: Water, sugar, natural flavors, citric acid, sodium benzoate (preservative). Contains no common allergens.",
+            "Ingredients: Wheat flour, milk chocolate (sugar, cocoa butter, whole milk powder, chocolate liquor, soy lecithin), eggs, butter, salt.",
+            "Ingredients: Peanuts, sunflower oil, salt. May contain traces of tree nuts and sesame.",
+            "Ingredients: Tomato puree, olive oil, garlic, basil, salt. Processed in a facility that also handles fish and shellfish.",
+            "Ingredients: Oats, honey, almonds, cashews, dried cranberries. Contains tree nuts.",
+            "Ingredients: Soy protein, wheat gluten, natural flavors, spices. Contains soy and wheat."
+        ];
+
+        // App State
+        let appState = {
+            userProfile: {
+                selectedAllergens: [],
+                sensitivityLevel: 'low'
+            },
+            currentView: 'profile',
+            scanResult: null
+        };
+
+        // DOM Elements
+        const views = {
+            profile: document.getElementById('profile-view'),
+            scanner: document.getElementById('scanner-view'),
+            processing: document.getElementById('processing-view'),
+            result: document.getElementById('result-view')
+        };
+
+        const tabs = {
+            profile: document.querySelector('.profile-tab'),
+            scanner: document.querySelector('.scanner-tab')
+        };
+
+        // Initialize the application
+        function init() {
+            // Load saved profile
+            loadProfile();
+            
+            // Initialize allergen grid
+            initAllergenGrid();
+            
+            // Initialize sensitivity cards
+            initSensitivityCards();
+            
+            // Set up event listeners
+            setupEventListeners();
+        }
+
+        // Load profile from localStorage
+        function loadProfile() {
+            const savedProfile = localStorage.getItem('allergyguard_profile');
+            if (savedProfile) {
+                appState.userProfile = JSON.parse(savedProfile);
+                updateUIFromProfile();
+                showView('scanner');
+            }
+        }
+
+        // Initialize allergen selection grid
+        function initAllergenGrid() {
+            const grid = document.getElementById('allergens-grid');
+            grid.innerHTML = '';
+            
+            allergens.forEach(allergen => {
+                const card = document.createElement('div');
+                card.className = 'allergen-card';
+                if (appState.userProfile.selectedAllergens.includes(allergen.id)) {
+                    card.classList.add('active');
+                }
+                card.dataset.id = allergen.id;
+                card.innerHTML = `
+                    <span class="allergen-icon">${allergen.icon}</span>
+                    <span class="allergen-name">${allergen.name}</span>
+                `;
+                grid.appendChild(card);
+            });
+            
+            // Add click handlers
+            document.querySelectorAll('.allergen-card').forEach(card => {
+                card.addEventListener('click', () => toggleAllergen(card.dataset.id));
+            });
+        }
+
+        // Initialize sensitivity level cards
+        function initSensitivityCards() {
+            const cards = document.querySelectorAll('.sensitivity-card');
+            cards.forEach(card => {
+                card.addEventListener('click', () => {
+                    // Remove active class from all cards
+                    cards.forEach(c => c.classList.remove('active'));
+                    // Add active class to clicked card
+                    card.classList.add('active');
+                    // Update sensitivity level
+                    appState.userProfile.sensitivityLevel = card.dataset.level;
+                });
+            });
+        }
+
+        // Toggle allergen selection
+        function toggleAllergen(allergenId) {
+            const index = appState.userProfile.selectedAllergens.indexOf(allergenId);
+            const card = document.querySelector(`.allergen-card[data-id="${allergenId}"]`);
+            
+            if (index === -1) {
+                appState.userProfile.selectedAllergens.push(allergenId);
+                card.classList.add('active');
+            } else {
+                appState.userProfile.selectedAllergens.splice(index, 1);
+                card.classList.remove('active');
+            }
+            
+            updateSaveButton();
+        }
+
+        // Update save button state
+        function updateSaveButton() {
+            const saveBtn = document.getElementById('save-profile-btn');
+            if (appState.userProfile.selectedAllergens.length > 0) {
+                saveBtn.disabled = false;
+            } else {
+                saveBtn.disabled = true;
+            }
+        }
+
+        // Update UI from profile
+        function updateUIFromProfile() {
+            // Update sensitivity cards
+            document.querySelectorAll('.sensitivity-card').forEach(card => {
+                card.classList.toggle('active', card.dataset.level === appState.userProfile.sensitivityLevel);
+            });
+            
+            // Update allergen cards
+            document.querySelectorAll('.allergen-card').forEach(card => {
+                card.classList.toggle('active', appState.userProfile.selectedAllergens.includes(card.dataset.id));
+            });
+            
+            updateSaveButton();
+        }
+
+        // Set up event listeners
+        function setupEventListeners() {
+            // Navigation tabs
+            tabs.profile.addEventListener('click', () => showView('profile'));
+            tabs.scanner.addEventListener('click', () => {
+                if (appState.userProfile.selectedAllergens.length > 0) {
+                    showView('scanner');
+                } else {
+                    alert('Please set up your allergy profile first.');
+                    showView('profile');
+                }
+            });
+
+            // Save profile button
+            document.getElementById('save-profile-btn').addEventListener('click', saveProfile);
+
+            // Scanner controls
+            document.getElementById('capture-btn').addEventListener('click', captureImage);
+            document.getElementById('file-input').addEventListener('change', handleFileUpload);
+
+            // Result actions
+            document.getElementById('rescan-btn').addEventListener('click', () => showView('scanner'));
+            document.getElementById('new-scan-btn').addEventListener('click', newScan);
+        }
+
+        // Save profile
+        function saveProfile() {
+            localStorage.setItem('allergyguard_profile', JSON.stringify(appState.userProfile));
+            showView('scanner');
+        }
+
+        // Show specific view
+        function showView(viewName) {
+            // Hide all views
+            Object.values(views).forEach(view => view.classList.remove('active'));
+            
+            // Remove active class from all tabs
+            Object.values(tabs).forEach(tab => tab.classList.remove('active'));
+            
+            // Show selected view
+            views[viewName].classList.add('active');
+            
+            // Activate corresponding tab
+            if (viewName === 'profile') {
+                tabs.profile.classList.add('active');
+            } else if (viewName === 'scanner') {
+                tabs.scanner.classList.add('active');
+                resetScanner();
+            }
+            
+            appState.currentView = viewName;
+        }
+
+        // Reset scanner view
+        function resetScanner() {
+            const cameraPlaceholder = document.getElementById('camera-placeholder');
+            const capturedImage = document.getElementById('captured-image');
+            
+            cameraPlaceholder.classList.remove('hidden');
+            capturedImage.classList.add('hidden');
+            capturedImage.src = '';
+        }
+
+        // Capture image (mock)
+        function captureImage() {
+            // In a real app, this would access the device camera
+            // For demo, we'll simulate with a random mock text
+            showView('processing');
+            
+            setTimeout(() => {
+                processMockImage();
+            }, 2000);
+        }
+
+        // Handle file upload
+        function handleFileUpload(event) {
+            const file = event.target.files[0];
+            if (file && file.type.startsWith('image/')) {
+                showView('processing');
+                
+                // Display the uploaded image
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    document.getElementById('captured-image').src = e.target.result;
+                };
+                reader.readAsDataURL(file);
+                
+                // Process the image after a delay
+                setTimeout(() => {
+                    processMockImage();
+                }, 2000);
+            }
+        }
+
+        // Process mock image (for demonstration)
+        function processMockImage() {
+            // Get a random ingredient text
+            const randomText = mockIngredientTexts[Math.floor(Math.random() * mockIngredientTexts.length)];
+            
+            // Detect allergens
+            const detectionResult = detectAllergens(randomText, appState.userProfile.selectedAllergens);
+            
+            // Get risk status
+            const riskStatus = getRiskStatus(detectionResult);
+            
+            // Store result
+            appState.scanResult = {
+                ...riskStatus,
+                detectedAllergens: detectionResult.detectedAllergens,
+                rawText: detectionResult.rawText
+            };
+            
+            // Show results
+            showResults();
+        }
+
+        // Detect allergens in text
+        function detectAllergens(text, userAllergens) {
+            if (!text || userAllergens.length === 0) {
+                return {
+                    detectedAllergens: [],
+                    confidence: 'high',
+                    rawText: text
+                };
+            }
+
+            const lowerText = text.toLowerCase();
+            const detectedAllergens = [];
+            
+            userAllergens.forEach(allergen => {
+                const synonyms = allergenSynonyms[allergen] || [];
+                const found = synonyms.some(synonym => {
+                    const regex = new RegExp(`\\b${synonym.toLowerCase()}\\b`, 'i');
+                    return regex.test(lowerText);
+                });
+                
+                if (found) {
+                    detectedAllergens.push(allergen);
+                }
+            });
+
+            // Determine confidence
+            let confidence = 'high';
+            if (lowerText.length < 10) {
+                confidence = 'low';
+            } else if (lowerText.includes('may contain') || lowerText.includes('processed in a facility')) {
+                confidence = 'medium';
+            }
+
+            return {
+                detectedAllergens,
+                confidence,
+                rawText: text
+            };
+        }
+
+        // Get risk status
+        function getRiskStatus(detectionResult) {
+            const { detectedAllergens, confidence } = detectionResult;
+
+            if (detectedAllergens.length > 0) {
+                return {
+                    status: 'unsafe',
+                    color: 'danger',
+                    icon: '❌',
+                    title: 'Not Safe! ⚠️',
+                    message: `Contains: ${detectedAllergens.map(id => allergens.find(a => a.id === id)?.name || id).join(', ')}`,
+                    recommendation: 'Avoid this product'
+                };
+            }
+
+            if (confidence === 'low') {
+                return {
+                    status: 'uncertain',
+                    color: 'warning',
+                    icon: '⚠️',
+                    title: 'Needs Review 🔍',
+                    message: 'Unable to determine safety',
+                    recommendation: 'Please review the ingredient list manually'
+                };
+            }
+
+            return {
+                status: 'safe',
+                color: 'success',
+                icon: '✅',
+                title: 'Safe to Eat! 🎉',
+                message: 'No allergens detected for your profile',
+                recommendation: 'This product appears safe for you'
+            };
+        }
+
+        // Show scan results
+        function showResults() {
+            const result = appState.scanResult;
+            
+            // Update result icon
+            const resultIcon = document.getElementById('result-icon');
+            resultIcon.className = `result-icon ${result.status}`;
+            resultIcon.innerHTML = result.icon;
+            
+            // Update result title and message
+            document.getElementById('result-title').textContent = result.title;
+            document.getElementById('result-message').textContent = result.message;
+            
+            // Update detected allergens
+            const detectedSection = document.getElementById('detected-allergens-section');
+            const detectedTags = document.getElementById('detected-allergens');
+            
+            if (result.detectedAllergens.length > 0) {
+                detectedSection.classList.remove('hidden');
+                detectedTags.innerHTML = '';
+                
+                result.detectedAllergens.forEach(allergenId => {
+                    const allergen = allergens.find(a => a.id === allergenId);
+                    const tag = document.createElement('span');
+                    tag.className = 'allergen-tag';
+                    tag.textContent = allergen ? allergen.name : allergenId;
+                    detectedTags.appendChild(tag);
+                });
+            } else {
+                detectedSection.classList.add('hidden');
+            }
+            
+            // Update extracted text
+            const extractedSection = document.getElementById('extracted-text-section');
+            const extractedContent = document.getElementById('extracted-text-content');
+            
+            if (result.rawText) {
+                extractedSection.classList.remove('hidden');
+                extractedContent.textContent = result.rawText;
+            } else {
+                extractedSection.classList.add('hidden');
+            }
+            
+            // Show result view
+            showView('result');
+        }
+
+        // Start new scan
+        function newScan() {
+            showView('scanner');
+        }
+
+        // Initialize the app when page loads
+        window.addEventListener('DOMContentLoaded', init);
+    </script>
+</body>
+</html>
